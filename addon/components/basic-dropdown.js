@@ -35,6 +35,13 @@ export default Component.extend({
     }
   },
 
+  // didInsertElement() {
+  //   this._super(...arguments);
+  //   this.element.querySelector('.ember-basic-dropdown-trigger').addEventListener('mousedown', e => {
+  //     this.send('handleMousedown', e);
+  //   });
+  // },
+
   willDestroy() {
     this._super(...arguments);
     if (this.get('publicAPI.isOpen')) {
@@ -121,6 +128,7 @@ export default Component.extend({
   },
 
   close(e, skipFocus) {
+    debugger;
     if (!this.get('publicAPI.isOpen')) { return; }
     this.set('publicAPI.isOpen', false);
     this.set('_verticalPositionClass', null);
@@ -156,6 +164,7 @@ export default Component.extend({
   },
 
   handleRootMouseDown(e) {
+    // debugger;
     if (!this.element.contains(e.target) && !this.get('appRoot').querySelector('.ember-basic-dropdown-content').contains(e.target)) {
       this.close(e, true);
     }
