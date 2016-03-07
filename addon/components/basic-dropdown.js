@@ -6,6 +6,7 @@ import config from 'ember-get-config';
 const { Component, run, computed } = Ember;
 const MutObserver = self.window.MutationObserver || self.window.WebKitMutationObserver;
 const defaultDestination = config['ember-basic-dropdown'] && config['ember-basic-dropdown'].destination || 'ember-basic-dropdown-wormhole';
+const isTouchDevice = (!!self.window && 'ontouchstart' in window);
 
 export default Component.extend({
   layout: layout,
@@ -35,12 +36,15 @@ export default Component.extend({
     }
   },
 
-  // didInsertElement() {
-  //   this._super(...arguments);
-  //   this.element.querySelector('.ember-basic-dropdown-trigger').addEventListener('mousedown', e => {
-  //     this.send('handleMousedown', e);
-  //   });
-  // },
+  didInsertElement() {
+    this._super(...arguments);
+    let trigger = this.element.querySelector('.ember-basic-dropdown-trigger');
+    if (isTouchDevice) {
+      trigger.addEventListener('touchend', e => this.send('handleTouchEnd', e));
+    } else {
+      trigger.addEventListener('mousedown', e => this.send('handleMousedown', e));
+    }
+  },
 
   willDestroy() {
     this._super(...arguments);
@@ -94,6 +98,11 @@ export default Component.extend({
 
   // Actions
   actions: {
+    handleTouchEnd(e) {
+      console.debug(e);
+      this.toggle(e);
+    },
+
     handleMousedown(e) {
       this.stopTextSelectionUntilMouseup();
       this.toggle(e);
@@ -128,7 +137,6 @@ export default Component.extend({
   },
 
   close(e, skipFocus) {
-    debugger;
     if (!this.get('publicAPI.isOpen')) { return; }
     this.set('publicAPI.isOpen', false);
     this.set('_verticalPositionClass', null);
