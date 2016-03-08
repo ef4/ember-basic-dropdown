@@ -40,6 +40,14 @@ export default Component.extend({
     this._super(...arguments);
     let trigger = this.element.querySelector('.ember-basic-dropdown-trigger');
     if (isTouchDevice) {
+      // TODO: Add a touchmove event that fires only once
+      trigger.addEventListener('touchstart', e => {
+        let touchMoveHandler = e => {
+          this.hasMoved = true;
+          this.get('appRoot').removeEventListener('touchmove', touchMoveHandler);
+        };
+        this.get('appRoot').addEventListener('touchmove', touchMoveHandler);
+      });
       trigger.addEventListener('touchend', e => this.send('handleTouchEnd', e));
     } else {
       trigger.addEventListener('mousedown', e => this.send('handleMousedown', e));
@@ -99,8 +107,10 @@ export default Component.extend({
   // Actions
   actions: {
     handleTouchEnd(e) {
-      console.debug(e);
-      this.toggle(e);
+      if (!this.hasMoved) {
+        this.toggle(e);
+      }
+      this.hasMoved = false;
     },
 
     handleMousedown(e) {
