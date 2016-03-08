@@ -2,6 +2,7 @@ import Ember from 'ember';
 import layout from '../templates/components/basic-dropdown';
 import getOwner from 'ember-getowner-polyfill';
 import config from 'ember-get-config';
+import { currentTransform } from 'ember-basic-dropdown/matrix';
 
 const { Component, run, computed } = Ember;
 const MutObserver = self.window.MutationObserver || self.window.WebKitMutationObserver;
@@ -224,56 +225,18 @@ export default Component.extend({
     if (this.get('renderInPlace') || !this.get('publicAPI.isOpen')) { return; }
     let dropdown = this.get('appRoot').querySelector('.ember-basic-dropdown-content');
     if (!dropdown) { return ;}
-    let verticalPositionStrategy = this.get('verticalPosition');
     let trigger = this.element.querySelector('.ember-basic-dropdown-trigger');
-    let { left, top: topWithoutScroll, width: triggerWidth, height } = trigger.getBoundingClientRect();
-    if (this.get('matchTriggerWidth')) {
-      dropdown.style.width = `${triggerWidth}px`;
-    }
-    let { height: dropdownHeight, width: dropdownWidth } = dropdown.getBoundingClientRect();
-    let $window = Ember.$(self.window);
-    let viewportTop = $window.scrollTop();
-    let top = topWithoutScroll + viewportTop;
 
-    if (verticalPositionStrategy === 'above') {
-      top = top - dropdown.getBoundingClientRect().height;
-      this.set('_verticalPositionClass', 'ember-basic-dropdown--above');
-    } else if (verticalPositionStrategy === 'below') {
-      top = top + height;
-      this.set('_verticalPositionClass', 'ember-basic-dropdown--below');
-    } else { // auto
-      const viewportBottom = viewportTop + self.window.innerHeight;
-      const enoughRoomBelow = top + height + dropdownHeight < viewportBottom;
-      const enoughRoomAbove = topWithoutScroll > dropdownHeight;
+    let $elt = Ember.$(dropdown);
 
-      let verticalPositionClass = this.get('_verticalPositionClass');
-      if (verticalPositionClass === 'ember-basic-dropdown--below' && !enoughRoomBelow && enoughRoomAbove) {
-        this.set('_verticalPositionClass', 'ember-basic-dropdown--above');
-      } else if (verticalPositionClass === 'ember-basic-dropdown--above' && !enoughRoomAbove && enoughRoomBelow) {
-        this.set('_verticalPositionClass', 'ember-basic-dropdown--below');
-      } else if (!verticalPositionClass) {
-        this.set('_verticalPositionClass', enoughRoomBelow ? 'ember-basic-dropdown--below' : 'ember-basic-dropdown--above');
-      }
-      verticalPositionClass = this.get('_verticalPositionClass'); // It might have changed
-      top = top + (verticalPositionClass === 'ember-basic-dropdown--below' ? height : -dropdownHeight);
-    }
+    let targetRect = trigger.getBoundingClientRect();
+    let ownRect = dropdown.getBoundingClientRect();
+    let t = currentTransform(Ember.$(dropdown));
 
-    let horizontalPositionStrategy = this.get('horizontalPosition');
-
-    if(['right', 'left'].indexOf(horizontalPositionStrategy) === -1) {
-      // horizontal auto
-      let viewportRight = $window.scrollLeft() + self.window.innerWidth;
-      let roomForRight = viewportRight - left;
-      let roomForLeft = left;
-
-      horizontalPositionStrategy = roomForRight > roomForLeft ? 'left' : 'right';
-    }
-    if (horizontalPositionStrategy === 'right') {
-      left = left + triggerWidth - dropdownWidth;
-    }
-    this.set('_horizontalPositionClass', `ember-basic-dropdown--${horizontalPositionStrategy}`);
-
-    dropdown.style.top = `${top}px`;
-    dropdown.style.left = `${left}px`;
+    Ember.$(dropdown).css({
+      transform: `translateX(${targetRect.left - ownRect.left + t.tx}px) translateY(${targetRect.top - ownRect.top + t.ty}px)`,
+      width: `${$elt.outerWidth() + targetRect.right - targetRect.left - ownRect.right + ownRect.left}px`
+    });
+    this.set('_verticalPositionClass', 'ember-basic-dropdown--below');
   }
 });
