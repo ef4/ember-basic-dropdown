@@ -235,12 +235,12 @@ export default Component.extend({
 
     if (this.get('matchTriggerWidth') === 'extend-leftward') {
       Ember.$(dropdown).css({
-        transform: `translateX(${targetRect.right - ownRect.right + t.tx}px) translateY(${targetRect.top - ownRect.top + t.ty}px)`,
+        transform: `translateX(${targetRect.right - ownRect.right + t.tx}px) translateY(${targetRect.bottom - ownRect.top + t.ty}px)`,
         minWidth: `${$elt.outerWidth() + targetRect.right - targetRect.left - ownRect.right + ownRect.left}px`
       });
     } else {
       Ember.$(dropdown).css({
-        transform: `translateX(${targetRect.left - ownRect.left + t.tx}px) translateY(${targetRect.top - ownRect.top + t.ty}px)`,
+        transform: `translateX(${targetRect.left - ownRect.left + t.tx}px) translateY(${targetRect.bottom - ownRect.top + t.ty}px)`,
         width: `${$elt.outerWidth() + targetRect.right - targetRect.left - ownRect.right + ownRect.left}px`
       });
     }
